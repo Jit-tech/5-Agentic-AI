@@ -1,12 +1,16 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from io import BytesIO
 import json
+from collections import Counter
+import networkx as nx
+import plotly.io as pio
 
-# === Load mock data ===
+# === Load core data ===
 counties = [
     "Cork", "Kerry", "Limerick", "Galway", "Dublin", "Clare",
     "Wexford", "Kilkenny", "Donegal", "Mayo", "Meath", "Tipperary"
@@ -19,7 +23,6 @@ metrics = {
     "Food_Poverty_Index": [0.22, 0.30, 0.25, 0.28, 0.18, 0.26, 0.27, 0.29, 0.33, 0.31, 0.21, 0.24],
     "Farmer_Sentiment_Positive": [0.66, 0.52, 0.60, 0.58, 0.69, 0.61, 0.54, 0.59, 0.50, 0.55, 0.65, 0.57]
 }
-
 df_geo = pd.DataFrame(metrics)
 
 # === Agent response logic ===
@@ -52,7 +55,7 @@ def vera(c):
         return f"🧑‍🌾 VERA: 'Morale dip in {c['County']}. Co-create next CAP block grants!'"
     return f"🧑‍🌾 VERA: '{c['County']} sentiment holding. Prioritize training in tech-bio practices.'"
 
-# === NLP WordCloud Mock ===
+# === WordCloud ===
 def generate_wordcloud(text):
     wc = WordCloud(width=600, height=300, background_color='white').generate(text)
     buf = BytesIO()
@@ -63,17 +66,60 @@ def generate_wordcloud(text):
     plt.savefig(buf, format='png')
     st.image(buf)
 
-# === Streamlit UI ===
+# === Keyword Frequency Bar Chart ===
+def generate_keyword_barchart(text):
+    word_freq = Counter(text.lower().split())
+    common = word_freq.most_common(10)
+    words, freqs = zip(*common)
+    fig = go.Figure(go.Bar(x=freqs, y=words, orientation='h', marker=dict(color='green')))
+    fig.update_layout(title="Top 10 Farmer Keywords", yaxis_title="Keyword", xaxis_title="Frequency")
+    st.plotly_chart(fig, use_container_width=True)
+
+# === Sentiment Trend Line (Simulated) ===
+def generate_sentiment_trend(county):
+    dates = pd.date_range(start='2023-01', periods=6, freq='Q')
+    scores = [0.6, 0.58, 0.55, 0.57, 0.59, 0.61]
+    fig = px.line(x=dates, y=scores, labels={'x': 'Quarter', 'y': 'Sentiment'},
+                  title=f"Farmer Sentiment in {county} (2023–2024)")
+    st.plotly_chart(fig, use_container_width=True)
+
+# === Network Graph ===
+def generate_keyword_network(text):
+    words = text.lower().split()
+    pairs = [(words[i], words[i+1]) for i in range(len(words)-1)]
+    G = nx.Graph()
+    for a, b in pairs:
+        if G.has_edge(a, b):
+            G[a][b]['weight'] += 1
+        else:
+            G.add_edge(a, b, weight=1)
+    edge_x, edge_y, labels = [], [], []
+    pos = nx.spring_layout(G)
+    for edge in G.edges():
+        x0, y0 = pos[edge[0]]
+        x1, y1 = pos[edge[1]]
+        edge_x += [x0, x1, None]
+        edge_y += [y0, y1, None]
+    edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=0.5, color='#888'), mode='lines')
+    node_x = [pos[node][0] for node in G.nodes()]
+    node_y = [pos[node][1] for node in G.nodes()]
+    node_trace = go.Scatter(x=node_x, y=node_y, mode='markers+text',
+                            marker=dict(size=10, color='lightblue'),
+                            text=list(G.nodes()), textposition="top center")
+    fig = go.Figure(data=[edge_trace, node_trace],
+                   layout=go.Layout(title='Keyword Network', showlegend=False,
+                                    margin=dict(b=0,l=0,r=0,t=30)))
+    st.plotly_chart(fig, use_container_width=True)
+
+# === Streamlit App ===
 st.set_page_config(page_title="Agri AI Agents", layout="wide")
 st.title("🇮🇪 Ireland's Agri-Food System – Multi-Agent AI Prototype")
 
-# === Sidebar Scenario Controls ===
-st.sidebar.header("⚙️ Policy Simulation Controls")
+st.sidebar.header("⚙️ Policy Scenario Controls")
 climate_shock = st.sidebar.checkbox("Simulate Climate Shock (Drought)")
-export_block = st.sidebar.checkbox("Simulate Export Disruption (Port Blockade)")
+export_block = st.sidebar.checkbox("Simulate Export Disruption")
 subsidy_cut = st.sidebar.checkbox("Simulate CAP Subsidy Cut")
 
-# === Choropleth Map ===
 st.markdown("### 🗺️ Nitrogen Levels by County")
 with open("assets/ireland_counties.geojson") as f:
     counties_geo = json.load(f)
@@ -89,12 +135,10 @@ fig = px.choropleth_mapbox(
     zoom=5.5,
     center={"lat": 53.4, "lon": -7.9},
     opacity=0.6,
-    hover_name='County'
-)
+    hover_name='County')
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 st.plotly_chart(fig, use_container_width=True)
 
-# === Agent Dashboard ===
 county = st.selectbox("🔍 Select County to Consult AIs:", df_geo['County'])
 row = df_geo[df_geo['County'] == county].iloc[0]
 
@@ -105,9 +149,20 @@ st.warning(flora(row, subsidy_cut))
 st.info(sylva(row))
 st.success(vera(row))
 
-# === NLP Visual ===
-st.markdown(f"### 🧠 VERA’s WordCloud: Farmer Voices from {county}")
+# === NLP Analysis ===
+st.markdown(f"### 🧠 Farmer Feedback Analysis: {county}")
 mock_text = f"soil subsidy cap export sentiment policy support {county.lower()} {county.lower()} agtech climate beef dairy training funding"
+
+st.subheader("📊 Top Keywords (Bar Chart)")
+generate_keyword_barchart(mock_text)
+
+st.subheader("📈 Sentiment Trend (Simulated)")
+generate_sentiment_trend(county)
+
+st.subheader("🕸️ Keyword Network")
+generate_keyword_network(mock_text)
+
+st.subheader("☁️ WordCloud")
 generate_wordcloud(mock_text)
 
-st.caption("Jit’s Prototype – Multi-Agent Strategic Simulator. Powered by Streamlit, Plotly, WordCloud, and Smart Policy Logic.")
+st.caption("Jit’s Prototype – Strategic, Data-Driven, and Slightly Funny. Powered by Streamlit + Plotly + WordCloud + NLP Intelligence.")
