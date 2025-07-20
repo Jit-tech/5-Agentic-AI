@@ -170,4 +170,4 @@ generate_keyword_network(mock_text)
 st.subheader("WordCloud")
 generate_wordcloud(mock_text)
 
-st.caption("Jit’s Prototype – Strategic, Data-Driven, and Slightly Funny. Powered by Streamlit + Plotly + WordCloud + NLP Intelligence.")
+st.caption("Jit’s Prototype – Strategic and Data-Driven. Powered by Streamlit, Econometrics and AI")
