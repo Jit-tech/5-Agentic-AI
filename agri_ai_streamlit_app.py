@@ -8,6 +8,7 @@ from io import BytesIO
 import json
 import networkx as nx
 import numpy as np
+import random
 
 # === Load core data ===
 counties = [
@@ -20,39 +21,86 @@ metrics = {
     "Soil_Carbon_2024": [2.8, 3.2, 2.5, 3.0, 2.3, 2.9, 3.1, 3.0, 2.6, 2.7, 3.3, 2.4],
     "Nitrogen_Level": [65, 72, 60, 70, 68, 66, 74, 71, 67, 64, 69, 62],
     "Food_Poverty_Index": [0.22, 0.30, 0.25, 0.28, 0.18, 0.26, 0.27, 0.29, 0.33, 0.31, 0.21, 0.24],
-    "Farmer_Sentiment_Positive": [0.66, 0.52, 0.60, 0.58, 0.69, 0.61, 0.54, 0.59, 0.50, 0.55, 0.65, 0.57]
+    "Farmer_Sentiment_Positive": [0.66, 0.52, 0.60, 0.58, 0.69, 0.61, 0.54, 0.59, 0.50, 0.55, 0.65, 0.57],
+    "Text_Comments": [
+        "soil health biodiversity water conservation",
+        "market disruption rural support",
+        "agriculture economy innovation",
+        "export block logistics",
+        "fertilizer water runoff",
+        "carbon sequestration soil regeneration",
+        "smart tech robotics farming",
+        "subsidy cut farmer income",
+        "climate crisis drought",
+        "young farmer support",
+        "crop rotation sustainability",
+        "organic farming trend"
+    ]
 }
 df_geo = pd.DataFrame(metrics)
 
-# === Agent response logic ===
-def gaia(c, climate_shock):
-    if climate_shock and c['Soil_Carbon_2024'] < 2.8:
-        return f"GAIA: 'Post-shock soil in {c['County']} requires regenerative tillage immediately.'"
-    if c['Soil_Carbon_2024'] < 2.6:
-        return f"GAIA: 'Soil carbon low in {c['County']}. Cover cropping now critical.'"
-    elif c['Nitrogen_Level'] > 70:
-        return f"GAIA: 'Nitrogen overload in {c['County']}. Shift to legumes needed.'"
-    return f"GAIA: '{c['County']} shows balance. Sustain biodiversity with precision farming.'"
+# === Agent Response Framework ===
+def generate_agent_response(agent, context):
+    county = context['County']
+    soil = context['Soil_Carbon_2024']
+    nitrogen = context['Nitrogen_Level']
+    poverty = context['Food_Poverty_Index']
+    sentiment = context['Farmer_Sentiment_Positive'] + random.uniform(-0.03, 0.03)
 
-def astra(c, export_block):
-    if export_block and c['County'] in ["Cork", "Wexford"]:
-        return f"ASTRA: 'Export choke-point in {c['County']}! Reroute or buffer stocks needed.'"
-    return f"ASTRA: '{c['County']} logistics are stable. Watch volatility indices quarterly.'"
+    if agent == "GAIA":
+        if context['climate_shock']:
+            if soil < 2.5:
+                return f"GAIA: 'Severe drought + low carbon in {county}. Start emergency regenerative protocols with mulching.'"
+            elif soil < 2.8:
+                return f"GAIA: '{county} soils marginal post-shock. Deploy localized soil monitoring drones.'"
+            else:
+                return f"GAIA: '{county} remains stable. Test long-term resilience of biodiversity buffers.'"
+        elif nitrogen > 70:
+            return f"GAIA: '{county} nitrogen leaching detected. Consider switch to biological N-fixing methods.'"
+        elif soil < 2.6:
+            return f"GAIA: '{county} needs carbon restoration. Mobilize compost bank initiatives.'"
+        else:
+            return f"GAIA: '{county} ecosystem resilient. Maintain precision-based no-till systems.'"
 
-def flora(c, subsidy_cut):
-    if subsidy_cut and c['Food_Poverty_Index'] > 0.28:
-        return f"FLORA: 'Food poverty alert in {c['County']}. Deploy emergency nutrition credits!'"
-    elif c['Food_Poverty_Index'] > 0.3:
-        return f"FLORA: 'Persistent poverty in {c['County']}. CAP buffer recommended.'"
-    return f"FLORA: '{c['County']} food security fair. Monitor staple inflation.'"
+    elif agent == "ASTRA":
+        if context['export_block']:
+            if county in ["Cork", "Wexford"]:
+                return f"ASTRA: 'Disruption at {county} hub. Redirect cold chain to Shannon and reevaluate perishable pathways.'"
+            else:
+                return f"ASTRA: '{county} affected by downstream logistics crunch. Reoptimize through rail-fed buffer zones.'"
+        else:
+            return f"ASTRA: '{county} exports flowing. Monitor congestion indicators + diesel volatility.'"
 
-def sylva(c):
-    return f"SYLVA: '{c['County']} can lead in biomass + forestry. Recommend pilot circular cluster.'"
+    elif agent == "FLORA":
+        if context['subsidy_cut']:
+            if poverty > 0.3:
+                return f"FLORA: 'Food stress surge in {county} due to policy cuts. Launch school meal relief + direct produce linkage.'"
+            elif poverty > 0.25:
+                return f"FLORA: '{county} at tipping point. Suggest prepaid agro-coop food cards.'"
+            else:
+                return f"FLORA: '{county} shows soft resilience. Watch dietary diversity metrics closely.'"
+        else:
+            if poverty > 0.3:
+                return f"FLORA: 'Underlying vulnerability in {county}. Activate food bank AI for predictive delivery.'"
+            return f"FLORA: '{county} food ecosystem manageable. Align with next gen EIP-Agri projects.'"
 
-def vera(c):
-    if c['Farmer_Sentiment_Positive'] < 0.55:
-        return f"VERA: 'Morale dip in {c['County']}. Co-create next CAP block grants!'"
-    return f"VERA: '{c['County']} sentiment holding. Prioritize training in tech-bio practices.'"
+    elif agent == "SYLVA":
+        if soil >= 3.0:
+            return f"SYLVA: '{county} high biocapacity. Fast-track carbon-credit afforestation zones.'"
+        elif nitrogen > 70:
+            return f"SYLVA: '{county} runoff hotspots. Plant mixed hedgerows + wetland phytoremediation strips.'"
+        else:
+            return f"SYLVA: '{county} moderate index. Launch smart forest pilot with remote sensing telemetry.'"
+
+    elif agent == "VERA":
+        if sentiment < 0.52:
+            return f"VERA: 'Low morale in {county}. Host agri-hackathons + participatory innovation summits.'"
+        elif sentiment < 0.6:
+            return f"VERA: 'Farmer sentiment mixed in {county}. Tailor microlearning + peer-led field labs.'"
+        else:
+            return f"VERA: 'Positive momentum in {county}. Incentivize early AI-farm adopters with digital twin grants.'"
+
+    return f"{agent}: 'No data-driven recommendation available.'"
 
 # === WordCloud ===
 def generate_wordcloud(text):
@@ -92,82 +140,3 @@ def generate_keyword_network(text):
                    layout=go.Layout(title='Keyword Network', showlegend=False,
                                     margin=dict(b=0,l=0,r=0,t=30)))
     st.plotly_chart(fig, use_container_width=True)
-
-# === Bar Chart ===
-def generate_keyword_barchart(text, deviation=0):
-    base_words = text.lower().split()
-    word_freq = {w: base_words.count(w) + deviation for w in set(base_words)}
-    sorted_items = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:10]
-    words, freqs = zip(*sorted_items)
-    fig = go.Figure(go.Bar(x=freqs, y=words, orientation='h', marker=dict(color='green')))
-    fig.update_layout(title="Top Keywords", yaxis_title="Keyword", xaxis_title="Adjusted Frequency")
-    st.plotly_chart(fig, use_container_width=True)
-
-# === Simulated Sentiment Trend ===
-def generate_sentiment_trend(county, policy_effect):
-    dates = pd.date_range(start='2023-01', periods=6, freq='Q')
-    base = 0.60 + np.random.normal(0, 0.01, 6)
-    impact = -0.04 if policy_effect else 0.02
-    adjusted = base + impact
-    fig = px.line(x=dates, y=adjusted, labels={'x': 'Quarter', 'y': 'Sentiment'},
-                  title=f"Sentiment Trend for {county} under Current Scenario")
-    st.plotly_chart(fig, use_container_width=True)
-
-# === Streamlit App ===
-st.set_page_config(page_title="Agri AI Agents", layout="wide")
-st.title("Ireland's Agri-Food System – Multi-Agent AI Prototype")
-
-st.sidebar.header("Policy Scenario Controls")
-climate_shock = st.sidebar.checkbox("Simulate Climate Shock (Drought)")
-export_block = st.sidebar.checkbox("Simulate Export Disruption")
-subsidy_cut = st.sidebar.checkbox("Simulate CAP Subsidy Cut")
-
-st.markdown("### 🗺️ Nitrogen Levels by County")
-with open("assets/ireland_counties.geojson") as f:
-    counties_geo = json.load(f)
-
-fig = px.choropleth_mapbox(
-    df_geo,
-    geojson=counties_geo,
-    locations='County',
-    featureidkey='properties.CountyName',
-    color='Nitrogen_Level',
-    color_continuous_scale="RdYlGn_r",
-    mapbox_style="carto-positron",
-    zoom=5.5,
-    center={"lat": 53.4, "lon": -7.9},
-    opacity=0.6,
-    hover_name='County')
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-st.plotly_chart(fig, use_container_width=True)
-
-county = st.selectbox("Select County to Consult AIs:", df_geo['County'])
-row = df_geo[df_geo['County'] == county].iloc[0]
-
-st.markdown("### Agent Responses")
-st.info(gaia(row, climate_shock))
-st.success(astra(row, export_block))
-st.warning(flora(row, subsidy_cut))
-st.info(sylva(row))
-st.success(vera(row))
-
-# === NLP Analysis ===
-st.markdown(f"### Farmer Feedback Analysis: {county}")
-mock_text = f"soil subsidy cap export sentiment policy support {county.lower()} {county.lower()} agtech climate beef dairy training funding"
-
-deviation = -1 if subsidy_cut else 1
-policy_effect = climate_shock or subsidy_cut or export_block
-
-st.subheader("Keyword Frequency (Bar Chart)")
-generate_keyword_barchart(mock_text, deviation)
-
-st.subheader("Sentiment Trend (Simulated)")
-generate_sentiment_trend(county, policy_effect)
-
-st.subheader("Keyword Network")
-generate_keyword_network(mock_text)
-
-st.subheader("WordCloud")
-generate_wordcloud(mock_text)
-
-st.caption("Jit’s Prototype – Strategic and Data-Driven. Powered by Streamlit, Econometrics and AI")
