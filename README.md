@@ -1,6 +1,6 @@
 # Agri-AI Ireland Agentics
 
-Multi-Agentic AI Simulator for Ireland’s Agriculture and Food Systems**  
+Multi-Agentic AI Simulator for Ireland’s Agriculture and Food Systems
 Built with Streamlit | Strategic. Data-Driven.
 
 ---
