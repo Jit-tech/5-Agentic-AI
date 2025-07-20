@@ -115,9 +115,9 @@ def generate_sentiment_trend(county, policy_effect):
 
 # === Streamlit App ===
 st.set_page_config(page_title="Agri AI Agents", layout="wide")
-st.title("🇮🇪 Ireland's Agri-Food System – Multi-Agent AI Prototype")
+st.title("Ireland's Agri-Food System – Multi-Agent AI Prototype")
 
-st.sidebar.header("⚙️ Policy Scenario Controls")
+st.sidebar.header("Policy Scenario Controls")
 climate_shock = st.sidebar.checkbox("Simulate Climate Shock (Drought)")
 export_block = st.sidebar.checkbox("Simulate Export Disruption")
 subsidy_cut = st.sidebar.checkbox("Simulate CAP Subsidy Cut")
