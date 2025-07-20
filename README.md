@@ -1,17 +1,17 @@
-# 🇮🇪 Agri-AI Ireland Agentics
+# Agri-AI Ireland Agentics
 
-**Multi-Agentic AI Simulator for Ireland’s Agriculture and Food Systems**  
-*Built with Streamlit | Strategic. Hilarious. Data-Driven.*
-
----
-
-## 🧠 Project Overview
-
-This prototype simulates a fictional but data-driven *AI Council* made up of **five specialized agentic intelligences** designed to address real-world agricultural and food policy challenges in Ireland. The agents interact with county-level data, produce strategic insights, and offer policy nudges—delivered with a mix of academic rigour and comedic relief.
+Multi-Agentic AI Simulator for Ireland’s Agriculture and Food Systems**  
+Built with Streamlit | Strategic. Data-Driven.
 
 ---
 
-## 🤖 Meet the Five Agentic AIs
+## Project Overview
+
+This prototype simulates a fictional but data-driven AI Council made up of five specialized agentic intelligences designed to address real-world agricultural and food policy challenges in Ireland. The agents interact with county-level data, produce strategic insights, and offer policy nudges—delivered with a mix of academic rigour and comedic relief.
+
+---
+
+## Meet the Five Agentic AIs
 
 | Agent Name | Domain | Personality | Strategic Role |
 |------------|--------|-------------|----------------|
@@ -23,7 +23,7 @@ This prototype simulates a fictional but data-driven *AI Council* made up of **f
 
 ---
 
-## 🗺️ Features
+## Features
 
 - **Interactive Plotly Map** of county-level nitrogen intensity
 - **Agent Panels** simulate real-time responses to selected counties
@@ -35,7 +35,7 @@ This prototype simulates a fictional but data-driven *AI Council* made up of **f
 
 ---
 
-## 🚀 How to Run Locally
+## How to Run Locally
 
 ### 1. Clone the repository
 ```bash
