@@ -68,7 +68,7 @@ def generate_agent_response(agent, c):
     county = c['County']
     if agent=='GAIA':
         if c['climate_shock']:
-            return (f"GAIA: '{{county}}' soils hit by drought. "
+            return (f"GAIA: '{county}' soils hit by drought. "
                     + ("Severe: emergency regreening." if soil<2.5 else "Moderate: deploy soil drones."))
         if nit>70: return f"GAIA: '{county}' nitrogen leaching. Apply N-fixing cover crops.'"
         if soil<2.6: return f"GAIA: '{county}' low soil C. Mobilize compost banks.'"
