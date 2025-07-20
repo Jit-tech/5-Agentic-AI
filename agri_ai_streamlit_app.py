@@ -4,6 +4,7 @@ import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from io import BytesIO
+import json
 
 # === Load mock data ===
 counties = [
@@ -11,45 +12,45 @@ counties = [
     "Wexford", "Kilkenny", "Donegal", "Mayo", "Meath", "Tipperary"
 ]
 
-geo_data = {
-    "County": counties,
-    "Latitude": [51.9, 52.1, 52.7, 53.3, 53.3, 52.8, 52.3, 52.6, 55.0, 53.9, 53.6, 52.5],
-    "Longitude": [-8.5, -9.7, -8.6, -9.0, -6.3, -9.0, -6.5, -7.3, -7.7, -9.3, -6.5, -7.8]
-}
-df_geo = pd.DataFrame(geo_data)
-
 metrics = {
+    "County": counties,
     "Soil_Carbon_2024": [2.8, 3.2, 2.5, 3.0, 2.3, 2.9, 3.1, 3.0, 2.6, 2.7, 3.3, 2.4],
     "Nitrogen_Level": [65, 72, 60, 70, 68, 66, 74, 71, 67, 64, 69, 62],
     "Food_Poverty_Index": [0.22, 0.30, 0.25, 0.28, 0.18, 0.26, 0.27, 0.29, 0.33, 0.31, 0.21, 0.24],
     "Farmer_Sentiment_Positive": [0.66, 0.52, 0.60, 0.58, 0.69, 0.61, 0.54, 0.59, 0.50, 0.55, 0.65, 0.57]
 }
-for key, values in metrics.items():
-    df_geo[key] = values
+
+df_geo = pd.DataFrame(metrics)
 
 # === Agent response logic ===
-def gaia(c):
+def gaia(c, climate_shock):
+    if climate_shock and c['Soil_Carbon_2024'] < 2.8:
+        return f"🧠 GAIA: 'Post-shock soil in {c['County']} requires regenerative tillage immediately.'"
     if c['Soil_Carbon_2024'] < 2.6:
-        return f"🧠 GAIA: 'Soil carbon low in {c['County']}. Urgent need for cover cropping.'"
+        return f"🧠 GAIA: 'Soil carbon low in {c['County']}. Cover cropping now critical.'"
     elif c['Nitrogen_Level'] > 70:
-        return f"🧠 GAIA: 'Nitrogen overload in {c['County']}. Shift to leguminous rotation advised.'"
-    return f"🧠 GAIA: '{c['County']} is balanced. Maintain eco-stability through smart practices.'"
+        return f"🧠 GAIA: 'Nitrogen overload in {c['County']}. Shift to legumes needed.'"
+    return f"🧠 GAIA: '{c['County']} shows balance. Sustain biodiversity with precision farming.'"
 
-def astra(c):
-    return f"📦 ASTRA: '{c['County']} logistics flow stable. Monitor seasonal bottlenecks.'"
+def astra(c, export_block):
+    if export_block and c['County'] in ["Cork", "Wexford"]:
+        return f"📦 ASTRA: 'Export choke-point in {c['County']}! Reroute or buffer stocks needed.'"
+    return f"📦 ASTRA: '{c['County']} logistics are stable. Watch volatility indices quarterly.'"
 
-def flora(c):
-    if c['Food_Poverty_Index'] > 0.3:
-        return f"🥗 FLORA: 'Food poverty high in {c['County']}. Activate safety net subsidies.'"
-    return f"🥗 FLORA: '{c['County']} food affordability acceptable. Watch CPI next quarter.'"
+def flora(c, subsidy_cut):
+    if subsidy_cut and c['Food_Poverty_Index'] > 0.28:
+        return f"🥗 FLORA: 'Food poverty alert in {c['County']}. Deploy emergency nutrition credits!'"
+    elif c['Food_Poverty_Index'] > 0.3:
+        return f"🥗 FLORA: 'Persistent poverty in {c['County']}. CAP buffer recommended.'"
+    return f"🥗 FLORA: '{c['County']} food security fair. Monitor staple inflation.'"
 
 def sylva(c):
-    return f"🌳 SYLVA: '{c['County']} land is viable for bioeconomy. Prioritize circular transitions.'"
+    return f"🌳 SYLVA: '{c['County']} can lead in biomass + forestry. Recommend pilot circular cluster.'"
 
 def vera(c):
     if c['Farmer_Sentiment_Positive'] < 0.55:
-        return f"🧑‍🌾 VERA: 'Farmer morale low in {c['County']}. Propose co-creation forums.'"
-    return f"🧑‍🌾 VERA: 'Sentiment in {c['County']} improving. Reward engagement in policy cycles.'"
+        return f"🧑‍🌾 VERA: 'Morale dip in {c['County']}. Co-create next CAP block grants!'"
+    return f"🧑‍🌾 VERA: '{c['County']} sentiment holding. Prioritize training in tech-bio practices.'"
 
 # === NLP WordCloud Mock ===
 def generate_wordcloud(text):
@@ -66,51 +67,47 @@ def generate_wordcloud(text):
 st.set_page_config(page_title="Agri AI Agents", layout="wide")
 st.title("🇮🇪 Ireland's Agri-Food System – Multi-Agent AI Prototype")
 
-# Metric Map
-st.markdown("### 🗺️ County-wise Nitrogen Levels")
-fig = px.scatter_geo(
+# === Sidebar Scenario Controls ===
+st.sidebar.header("⚙️ Policy Simulation Controls")
+climate_shock = st.sidebar.checkbox("Simulate Climate Shock (Drought)")
+export_block = st.sidebar.checkbox("Simulate Export Disruption (Port Blockade)")
+subsidy_cut = st.sidebar.checkbox("Simulate CAP Subsidy Cut")
+
+# === Choropleth Map ===
+st.markdown("### 🗺️ Nitrogen Levels by County")
+with open("assets/ireland_counties.geojson") as f:
+    counties_geo = json.load(f)
+
+fig = px.choropleth_mapbox(
     df_geo,
-    lat='Latitude',
-    lon='Longitude',
-    text='County',
+    geojson=counties_geo,
+    locations='County',
+    featureidkey='properties.CountyName',
     color='Nitrogen_Level',
-    color_continuous_scale='RdYlGn_r',
-    projection="natural earth",
-    size_max=15,
-    size=[10]*len(df_geo),
-    title="Nitrogen Intensity by County"
+    color_continuous_scale="RdYlGn_r",
+    mapbox_style="carto-positron",
+    zoom=5.5,
+    center={"lat": 53.4, "lon": -7.9},
+    opacity=0.6,
+    hover_name='County'
 )
-fig.update_geos(fitbounds="locations", visible=False)
-fig.update_layout(
-    paper_bgcolor='white',
-    plot_bgcolor='white',
-    geo=dict(
-        bgcolor='white',
-        showland=True,
-        landcolor='rgb(229, 236, 246)'
-    )
-)
-fig.update_traces(
-    textfont=dict(color='black', size=12),
-    marker=dict(line=dict(width=1, color='black'))
-)
+fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 st.plotly_chart(fig, use_container_width=True)
 
-# Select County for NLP + Agent Response
+# === Agent Dashboard ===
 county = st.selectbox("🔍 Select County to Consult AIs:", df_geo['County'])
 row = df_geo[df_geo['County'] == county].iloc[0]
 
-# Agent Responses
 st.markdown("### 🤖 Agent Responses")
-st.info(gaia(row))
-st.success(astra(row))
-st.warning(flora(row))
+st.info(gaia(row, climate_shock))
+st.success(astra(row, export_block))
+st.warning(flora(row, subsidy_cut))
 st.info(sylva(row))
 st.success(vera(row))
 
-# NLP Mock Output
-st.markdown("### 🧠 VERA’s WordCloud: Farmer Opinions in " + county)
-mock_text = f"farming subsidy soil prices policy {county.lower()} {county.lower()} dairy milk export beef EU CAP support drought weed AI sensors"
+# === NLP Visual ===
+st.markdown(f"### 🧠 VERA’s WordCloud: Farmer Voices from {county}")
+mock_text = f"soil subsidy cap export sentiment policy support {county.lower()} {county.lower()} agtech climate beef dairy training funding"
 generate_wordcloud(mock_text)
 
-st.caption("Jit’s Prototype – Strategic + Humorous + Insightful. Powered by Streamlit, Plotly, WordCloud")
+st.caption("Jit’s Prototype – Multi-Agent Strategic Simulator. Powered by Streamlit, Plotly, WordCloud, and Smart Policy Logic.")
