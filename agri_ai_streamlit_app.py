@@ -4,7 +4,6 @@ import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from io import BytesIO
-import base64
 
 # === Load mock data ===
 counties = [
@@ -12,7 +11,6 @@ counties = [
     "Wexford", "Kilkenny", "Donegal", "Mayo", "Meath", "Tipperary"
 ]
 
-# Geo-coordinates (simplified centroid values for scatter plot)
 geo_data = {
     "County": counties,
     "Latitude": [51.9, 52.1, 52.7, 53.3, 53.3, 52.8, 52.3, 52.6, 55.0, 53.9, 53.6, 52.5],
@@ -20,7 +18,6 @@ geo_data = {
 }
 df_geo = pd.DataFrame(geo_data)
 
-# Extend core data
 metrics = {
     "Soil_Carbon_2024": [2.8, 3.2, 2.5, 3.0, 2.3, 2.9, 3.1, 3.0, 2.6, 2.7, 3.3, 2.4],
     "Nitrogen_Level": [65, 72, 60, 70, 68, 66, 74, 71, 67, 64, 69, 62],
@@ -71,11 +68,32 @@ st.title("🇮🇪 Ireland's Agri-Food System – Multi-Agent AI Prototype")
 
 # Metric Map
 st.markdown("### 🗺️ County-wise Nitrogen Levels")
-fig = px.scatter_geo(df_geo, lat='Latitude', lon='Longitude', text='County',
-                     color='Nitrogen_Level', color_continuous_scale='RdYlGn_r',
-                     projection="natural earth", size_max=15, size=[10]*len(df_geo),
-                     title="Nitrogen Intensity by County")
+fig = px.scatter_geo(
+    df_geo,
+    lat='Latitude',
+    lon='Longitude',
+    text='County',
+    color='Nitrogen_Level',
+    color_continuous_scale='RdYlGn_r',
+    projection="natural earth",
+    size_max=15,
+    size=[10]*len(df_geo),
+    title="Nitrogen Intensity by County"
+)
 fig.update_geos(fitbounds="locations", visible=False)
+fig.update_layout(
+    paper_bgcolor='white',
+    plot_bgcolor='white',
+    geo=dict(
+        bgcolor='white',
+        showland=True,
+        landcolor='rgb(229, 236, 246)'
+    )
+)
+fig.update_traces(
+    textfont=dict(color='black', size=12),
+    marker=dict(line=dict(width=1, color='black'))
+)
 st.plotly_chart(fig, use_container_width=True)
 
 # Select County for NLP + Agent Response
