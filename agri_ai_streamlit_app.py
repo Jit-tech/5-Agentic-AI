@@ -13,7 +13,7 @@ from collections import Counter
 
 # === UI Configuration ===
 st.set_page_config(page_title="Agri-Food Agentic AI Council", layout="wide")
-st.title("Agri-Food Agentic AI Council – Ireland")
+st.title("Agentic AI for Agri-Food Sustainability: Ireland’s Strategic Simulator")
 st.markdown("<h6 style='text-align: center;'>Designed by Jit</h6>", unsafe_allow_html=True)
 st.markdown("<h6 style='text-align: center;'>Powered by Econometrics and AI</h6>", unsafe_allow_html=True)
 
